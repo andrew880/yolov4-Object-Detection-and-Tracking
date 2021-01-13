@@ -31,11 +31,9 @@ __0.Requirements__
     
 __1. Download the code to your computer.__
     
-    git clone https://github.com/yehengchen/Object-Detection-and-Tracking.git
+    git clone https://github.com/andrew880/yolov4-Object-Detection-and-Tracking.git
     
-__2. Download [[yolov4.weights]](https://drive.google.com/file/d/1cewMfusmPjYWbrnuJRuKhPMwRe_b9PaT/view) [[Baidu]](https://pan.baidu.com/s/1jRudrrXAS3DRGqT6mL4L3A ) - `mnv6`__ and place it in `deep_sort_yolov4/model_data/`
-
-*Here you can download my trained [[yolo4_weight.h5]](https://pan.baidu.com/s/1JuT4KCUFaE2Gvme0_S37DQ ) - `w17w` weights for detecting person/car/bicycle,etc.*
+__2. Download [[yolov4.weights]](https://drive.google.com/file/d/1cewMfusmPjYWbrnuJRuKhPMwRe_b9PaT/view) - `mnv6`__ and place it in `model_data/`
 
 __3. Convert the Darknet YOLO model to a Keras model:__
 ```
@@ -47,6 +45,8 @@ __4. Run the YOLO_DEEP_SORT:__
 $ python main.py -c [CLASS NAME] -i [INPUT VIDEO PATH]
 
 $ python main.py -c person -i ./test_video/testvideo.avi
+
+$ python camera.py
 ```
 
 __5. Can change [deep_sort_yolov3/yolo.py] `__Line 100__` to your tracking object__
@@ -66,6 +66,17 @@ __5. Can change [deep_sort_yolov3/yolo.py] `__Line 100__` to your tracking objec
 [cosine_metric_learning](https://github.com/nwojke/cosine_metric_learning) for training a metric feature representation to be used with the deep_sort tracker.
 
 ## Citation
+
+### YOLOv4 :
+
+    @misc{Object Detection and Tracking,
+    title={Object Detection and Tracking},
+    author={Bobby Chen},
+    year={2020},
+    eprint={2020},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
+    }
 
 ### YOLOv4 :
 
