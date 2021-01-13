@@ -67,7 +67,7 @@ __5. Can change [deep_sort_yolov3/yolo.py] `__Line 100__` to your tracking objec
 
 ## Citation
 
-### YOLOv4 :
+### Deep Sort YOLOv4 :
 
     @misc{Object Detection and Tracking,
     title={Object Detection and Tracking},

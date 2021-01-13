@@ -35,7 +35,7 @@ if tf.test.gpu_device_name():
 else:
     print("Please install GPU version of TF")
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--input",help="path to input video", default = "C:/Users/User/Desktop/traffic/data/5555.mp4")
+ap.add_argument("-i", "--input",help="path to input video", default = "./test_video/5555.mp4")
 # ap.add_argument("-i", "--input",help="path to input video", default = "C:/Users/User/Desktop/traffic/data/skl_0.mp4")
 ap.add_argument("-c", "--class",help="name of class", default = "car")
 args = vars(ap.parse_args())
