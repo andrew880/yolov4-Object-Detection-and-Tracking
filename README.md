@@ -28,12 +28,13 @@ It uses:
 __0.Requirements__
 *require python version: 3.6.* (recommended 3.6.10)*
     pip install -r requirements.txt
-    
+*install all the libraries currently used to run this*
+    pip install -r recommends.txt
 __1. Download the code to your computer.__
     
     git clone https://github.com/andrew880/yolov4-Object-Detection-and-Tracking.git
     
-__2. Download [[yolov4.weights]](https://drive.google.com/file/d/1cewMfusmPjYWbrnuJRuKhPMwRe_b9PaT/view) - `mnv6`__ and place it in `model_data/`
+__2. Download [[yolov4.weights]](https://drive.google.com/drive/folders/1ynXqTi1sobqrv6gKMUCAHVIn7f1iqt9D?usp=sharing) - `mnv6`__ and place it in `model_data/`
 
 __3. Convert the Darknet YOLO model to a Keras model:__
 ```
@@ -59,7 +60,15 @@ __5. Can change [deep_sort_yolov3/yolo.py] `__Line 100__` to your tracking objec
     if predicted_class != 'person' and predicted_class != 'car':
                continue
 ```
+## Help
 
+* using anaconda virtual environment
+```
+$ conda create -n yourenvname python=x.x anaconda
+$ conda activate yourenvname
+$ #choose the virtual environment to run it in
+$ # continue to step 0 in quick start
+```
 ## Train on Market1501 & MARS
 *People Re-identification model*
 
