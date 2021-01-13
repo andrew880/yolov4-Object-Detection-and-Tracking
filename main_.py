@@ -23,12 +23,17 @@ from deep_sort.detection import Detection as ddet
 from collections import deque
 from keras import backend
 import tensorflow as tf
+
 # import tensorflow.compat.v1 as tf
 # tf.disable_v2_behavior()
 # from tensorflow.compat.v1 import InteractiveSession
 # config = tf.ConfigProto()
 # config.gpu_options.allow_growth = True
 # session = InteractiveSession(config=config)
+###
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+tf.keras.backend.set_session(tf.Session(config=config))
 
 if tf.test.gpu_device_name():
     print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))

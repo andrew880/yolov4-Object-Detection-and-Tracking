@@ -25,6 +25,14 @@ from keras import backend
 import tensorflow as tf
 # from tensorflow.compat.v1 import InteractiveSession
 from scipy.spatial import distance as dist
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.9
+config.gpu_options.allow_growth = True
+tf.keras.backend.set_session(tf.Session(config=config))
+if tf.test.gpu_device_name():
+    print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
+else:
+    print("Please install GPU version of TF")
 
 def calculateDistance(x1,y1,x2,y2):
     dist = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
@@ -74,9 +82,9 @@ def init_write_video():
 def flow_count(flow, time):
     count = 0
     for i in flow:
-        if time - i < 60*5:
+        if time - i < 60*3:
             count += 1
-    return count/5
+    return count/3
 
 def main_(yolo):
     #init
