@@ -28,11 +28,12 @@ import tensorflow as tf
 # tf.disable_v2_behavior()
 # from tensorflow.compat.v1 import InteractiveSession
 # config = tf.ConfigProto()
-# config.gpu_options.allow_growth = True
+# config.gpu_options.allow_growth = True # pylint: disable=maybe-no-member
 # session = InteractiveSession(config=config)
 ###
 config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
+config.gpu_options.allow_growth = True # pylint: disable=maybe-no-member
+config.gpu_options.per_process_gpu_memory_fraction = 0.9 # pylint: disable=maybe-no-member
 tf.keras.backend.set_session(tf.Session(config=config))
 
 if tf.test.gpu_device_name():
@@ -108,7 +109,7 @@ def main(yolo):
         image = Image.fromarray(frame[...,::-1]) #bgr to rgb
         
         
-        boxs, confidence, class_names = yolo.detect_image(image)
+        boxs, confidence, class_names = yolo.detect_image(image)  # pylint: disable=unused-variable
         features = encoder(frame,boxs)
         # score to 1.0 here).
         detections = [Detection(bbox, 1.0, feature) for bbox, feature in zip(boxs, features)]

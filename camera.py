@@ -26,8 +26,8 @@ import tensorflow as tf
 # from tensorflow.compat.v1 import InteractiveSession
 from scipy.spatial import distance as dist
 config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.9
-config.gpu_options.allow_growth = True
+config.gpu_options.per_process_gpu_memory_fraction = 0.9 # pylint: disable=maybe-no-member
+config.gpu_options.allow_growth = True # pylint: disable=maybe-no-member
 tf.keras.backend.set_session(tf.Session(config=config))
 if tf.test.gpu_device_name():
     print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
@@ -102,7 +102,7 @@ def main_(yolo):
         t1 = time.time()
         class_names = ["person"]
         image = Image.fromarray(frame[...,::-1]) #bgr to rgb
-        boxs, confidence, class_names = yolo.detect_image(image)
+        boxs, confidence, class_names = yolo.detect_image(image) # pylint: disable=unused-variable
         features = encoder(frame,boxs)
         detections = [Detection(bbox, 1.0, feature) for bbox, feature in zip(boxs, features)]
         # Run non-maxima suppression.
