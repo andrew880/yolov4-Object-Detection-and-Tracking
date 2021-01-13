@@ -1,2 +1,4 @@
 model_data\yolo4_weight.h5
 model_data\yolov4.weights
+.vscode
+__pycache__
