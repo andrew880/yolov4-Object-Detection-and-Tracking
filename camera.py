@@ -70,14 +70,14 @@ def camera_check(vc):
 def init_write_video():
     writeVideo_flag = True
     if writeVideo_flag:
-        # Define the codec and create VideoWriter object
-        w = int(600) #camera width
-        h = int(800) #camera height
+        # Define the codec and create VideoWriter object 1280×720
+        w = int(1280) #camera width
+        h = int(720) #camera height
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
         out = cv2.VideoWriter('./output/output.avi', fourcc, 15, (w, h))
         list_file = open('detection_rslt.txt', 'w')
         frame_index = -1
-    return writeVideo_flag, out, list_file, frame_index
+    return writeVideo_flag, out, list_file, frame_index, w, h
 
 def flow_count(flow, time):
     count = 0
@@ -91,7 +91,7 @@ def main_(yolo):
     nms_max_overlap, counter, COLORS, fps = init_()
     x1,y1,x2,y2 = init_classification_box()
     encoder, tracker, pts, flow = init_deep_sort()
-    writeVideo_flag, out, list_file, frame_index = init_write_video()
+    writeVideo_flag, out, list_file, frame_index, w, h = init_write_video()
 
     vc = cv2.VideoCapture(0)
     rval = camera_check(vc)
@@ -194,6 +194,11 @@ def main_(yolo):
                 thickness = int(np.sqrt(64 / float(j + 1)) * 2)
                 cv2.line(frame,(pts[track.track_id][j-1]), (pts[track.track_id][j]),(color),thickness)
 
+        x1,x2,y1,y2 = 8,180,5,80
+        sub_frame = frame[y1:y2, x1:x2]
+        white_rect = np.ones(sub_frame.shape, dtype=np.uint8) * 255
+        res = cv2.addWeighted(sub_frame, 0.7, white_rect, 0.5, 0.0)
+        frame[y1:y2, x1:x2] = res
         count = len(set(counter))
         cv2.putText(frame, "FPS: %f"%(fps*2),(int(10), int(15)),4, 5e-3 * 80, (0,255,0),1)
         cv2.putText(frame, "Current Population: "+str(i),(int(10), int(30)),4, 5e-3 * 80, (0,255,0),1)
@@ -201,7 +206,7 @@ def main_(yolo):
         cv2.putText(frame, "Total Exited: "+str(count-i),(int(10), int(60)),4, 5e-3 * 80, (0,255,0),1)
         cv2.putText(frame, "Traffic per min: "+str(flow_count(flow, t1)),(int(10), int(75)),4, 5e-3 * 80, (0,255,0),1)
         cv2.namedWindow("YOLO3_Deep_SORT", 0)
-        cv2.resizeWindow('YOLO3_Deep_SORT', 1024, 768)
+        cv2.resizeWindow('YOLO3_Deep_SORT', 1280, 720)
         cv2.imshow('YOLO3_Deep_SORT', frame)
 
 
