@@ -1,0 +1,13 @@
+Step 1:
+open commend prompt (cmd.exe)
+
+Step 2:
+copy the text below
+```
+cd c:/Users/hp010/Documents/GitHub/yolov4-Object-Detection-and-Tracking/
+activate traffic36
+python camera.py
+```
+
+Step 3:
+paste the text in commend prompt and press enter
