@@ -61,8 +61,10 @@ def init_deep_sort():
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
     tracker = Tracker(metric)
     pts = [deque(maxlen=50) for _ in range(9999)]
-    flow = [time.time()-600 for _ in range(9999)]
-    return (encoder, tracker, pts, flow)
+    flow0 = [time.time()-600 for _ in range(9999)]
+    flow1 = [time.time()-600 for _ in range(9999)]
+    t_d = 180 #time elapsed in seconds
+    return (encoder, tracker, pts, flow0, flow1, t_d)
 
 def camera_check(vc):
     return vc.isOpened() & vc.read()[0]
@@ -79,26 +81,32 @@ def init_write_video():
         frame_index = -1
     return writeVideo_flag, out, list_file, frame_index, w, h
 
-def flow_count(flow, time):
+def flow_count(flow0, flow1, t1,t_d):
     count = 0
-    for i in flow:
-        if time - i < 60*3:
+    for i in range(len(flow0)):
+        #new classified person
+        if flow1[i] - flow0[i] < t_d:
             count += 1
-    return count/3
+        #exited person
+        elif t1 - flow1[i] < t_d:
+            count += 1
+    return count/(t_d/60)
 
 def main_(yolo):
     #init
     nms_max_overlap, counter, COLORS, fps = init_()
     x1,y1,x2,y2 = init_classification_box()
-    encoder, tracker, pts, flow = init_deep_sort()
+    encoder, tracker, pts, flow0, flow1, t_d = init_deep_sort()
     writeVideo_flag, out, list_file, frame_index, w, h = init_write_video()
 
     vc = cv2.VideoCapture(0)
     rval = camera_check(vc)
+    t1 = time.time()
     while rval:
         rval, frame = vc.read()
         if rval != True:
             break
+        t0 = t1-.01
         t1 = time.time()
         class_names = ["person"]
         image = Image.fromarray(frame[...,::-1]) #bgr to rgb
@@ -127,7 +135,12 @@ def main_(yolo):
         for track in tracker.tracks:
             if not track.is_confirmed() or track.time_since_update > 1:
                 continue
-            flow[track.track_id] = t1
+            #update flow0
+            flow1[track.track_id] = t1
+            if flow0[track.track_id] == 0:
+                flow0[track.track_id] = t0
+            if flow0[track.track_id] == flow0[track.track_id] | flow1[track.track_id] - flow0[track.track_id] > t_d:
+                flow0[track.track_id] = flow1[track.track_id]
             # boxes.append([track[0], track[1], track[2], track[3]])
             indexIDs.append(int(track.track_id))
             counter.append(int(track.track_id))
@@ -204,7 +217,7 @@ def main_(yolo):
         cv2.putText(frame, "Current Population: "+str(i),(int(10), int(30)),4, 5e-3 * 80, (0,255,0),1)
         cv2.putText(frame, "Total Classified: "+str(count),(int(10), int(45)),4, 5e-3 * 80, (0,255,0),1)
         cv2.putText(frame, "Total Exited: "+str(count-i),(int(10), int(60)),4, 5e-3 * 80, (0,255,0),1)
-        cv2.putText(frame, "Traffic per min: "+str(flow_count(flow, t1)),(int(10), int(75)),4, 5e-3 * 80, (0,255,0),1)
+        cv2.putText(frame, "Traffic per min: "+str(flow_count(flow0, flow1, t1, t_d)),(int(10), int(75)),4, 5e-3 * 80, (0,255,0),1)
         cv2.namedWindow("YOLO3_Deep_SORT", 0)
         cv2.resizeWindow('YOLO3_Deep_SORT', 1280, 720)
         cv2.imshow('YOLO3_Deep_SORT', frame)
