@@ -39,7 +39,7 @@ def calculateDistance(x1,y1,x2,y2):
     return dist
 
 def init_():
-    # start = time.time()
+    start = time.time()
     nms_max_overlap = 0.3
 
     counter = []
@@ -47,13 +47,13 @@ def init_():
     COLORS = np.random.randint(0, 255, size=(200, 3),
         dtype="uint8")
     fps = 0.0
-    return(nms_max_overlap, counter, COLORS, fps)
+    return(nms_max_overlap, counter, COLORS, fps, start)
 
 def init_classification_box():
     #top left and bottom right corner
     return (0,0,1200,720) # x1,y1,x2,y2
 
-def init_deep_sort():
+def init_deep_sort(start):
     max_cosine_distance = 0.5
     nn_budget = None
     model_filename = 'model_data/market1501.pb'
@@ -61,9 +61,9 @@ def init_deep_sort():
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
     tracker = Tracker(metric)
     pts = [deque(maxlen=50) for _ in range(9999)]
-    flow0 = [time.time()-600 for _ in range(9999)]
-    flow1 = [time.time()-600 for _ in range(9999)]
-    t_d = 180 #time elapsed in seconds
+    flow0 = [start for _ in range(9999)]
+    flow1 = [start for _ in range(9999)]
+    t_d = 20 #time elapsed in seconds
     return (encoder, tracker, pts, flow0, flow1, t_d)
 
 def camera_check(vc):
@@ -81,22 +81,36 @@ def init_write_video():
         frame_index = -1
     return writeVideo_flag, out, list_file, frame_index, w, h
 
-def flow_count(flow0, flow1, t1,t_d):
+def flow_count(flow0, flow1, t1,t_d, start):
     count = 0
     for i in range(len(flow0)):
         #new classified person
-        if flow1[i] - flow0[i] < t_d:
+        if t1 - flow0[i] < t_d and flow1[i] - flow0[i] > 0:
             count += 1
         #exited person
-        elif t1 - flow1[i] < t_d:
+        elif t1 - flow1[i] < t_d and flow1[i] != t1 and flow1[i] != start:
             count += 1
-    return count/(t_d/60)
+    return count
+def in_count(flow0, flow1, t1, t_d, start):
+    count = 0
+    for i in range(len(flow0)):
+        #new classified person
+        if t1 - flow0[i] < t_d and flow1[i] - flow0[i] > 0:
+            count += 1
+    return count
+def out_count(flow0, flow1, t1,t_d, start):
+    count = 0
+    for i in range(len(flow0)):
+        #exited person
+        if t1 - flow1[i] < t_d and flow1[i] != t1 and flow1[i] != start:
+            count += 1
+    return count
 
 def main_(yolo):
     #init
-    nms_max_overlap, counter, COLORS, fps = init_()
+    nms_max_overlap, counter, COLORS, fps, start = init_()
     x1,y1,x2,y2 = init_classification_box()
-    encoder, tracker, pts, flow0, flow1, t_d = init_deep_sort()
+    encoder, tracker, pts, flow0, flow1, t_d = init_deep_sort(start)
     writeVideo_flag, out, list_file, frame_index, w, h = init_write_video()
 
     vc = cv2.VideoCapture(0)
@@ -106,7 +120,6 @@ def main_(yolo):
         rval, frame = vc.read()
         if rval != True:
             break
-        t0 = t1-.01
         t1 = time.time()
         class_names = ["person"]
         image = Image.fromarray(frame[...,::-1]) #bgr to rgb
@@ -137,9 +150,9 @@ def main_(yolo):
                 continue
             #update flow0
             flow1[track.track_id] = t1
-            if flow0[track.track_id] == 0:
-                flow0[track.track_id] = t0
-            if flow0[track.track_id] == flow0[track.track_id] | flow1[track.track_id] - flow0[track.track_id] > t_d:
+            if flow0[track.track_id] == start:
+                flow0[track.track_id] = t1-0.1
+            elif flow0[track.track_id] == flow1[track.track_id] or flow1[track.track_id] - flow0[track.track_id] > t_d:
                 flow0[track.track_id] = flow1[track.track_id]
             # boxes.append([track[0], track[1], track[2], track[3]])
             indexIDs.append(int(track.track_id))
@@ -207,7 +220,7 @@ def main_(yolo):
                 thickness = int(np.sqrt(64 / float(j + 1)) * 2)
                 cv2.line(frame,(pts[track.track_id][j-1]), (pts[track.track_id][j]),(color),thickness)
 
-        x1,x2,y1,y2 = 8,180,5,80
+        x1,x2,y1,y2 = 8,180,5,110 #y1 = last y+5
         sub_frame = frame[y1:y2, x1:x2]
         white_rect = np.ones(sub_frame.shape, dtype=np.uint8) * 255
         res = cv2.addWeighted(sub_frame, 0.7, white_rect, 0.5, 0.0)
@@ -217,7 +230,9 @@ def main_(yolo):
         cv2.putText(frame, "Current Population: "+str(i),(int(10), int(30)),4, 5e-3 * 80, (0,255,0),1)
         cv2.putText(frame, "Total Classified: "+str(count),(int(10), int(45)),4, 5e-3 * 80, (0,255,0),1)
         cv2.putText(frame, "Total Exited: "+str(count-i),(int(10), int(60)),4, 5e-3 * 80, (0,255,0),1)
-        cv2.putText(frame, "Traffic per min: "+str(flow_count(flow0, flow1, t1, t_d)),(int(10), int(75)),4, 5e-3 * 80, (0,255,0),1)
+        cv2.putText(frame, "Traffic per min: "+str(flow_count(flow0, flow1, t1, t_d, start)),(int(10), int(75)),4, 5e-3 * 80, (0,255,0),1)
+        cv2.putText(frame, "in per min: "+str(in_count(flow0, flow1, t1, t_d, start)),(int(10), int(90)),4, 5e-3 * 80, (0,255,0),1)
+        cv2.putText(frame, "out per min: "+str(out_count(flow0, flow1, t1, t_d, start)),(int(10), int(105)),4, 5e-3 * 80, (0,255,0),1)
         cv2.namedWindow("YOLO3_Deep_SORT", 0)
         cv2.resizeWindow('YOLO3_Deep_SORT', 1280, 720)
         cv2.imshow('YOLO3_Deep_SORT', frame)
