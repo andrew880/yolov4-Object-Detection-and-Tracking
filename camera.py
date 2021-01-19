@@ -286,8 +286,6 @@ def main_(yolo):
         #plot traf_plot
         x, y_traf, y_in, y_out = flow_data(flow0, flow1, t1, t_d, start)
         if t1 > limit:
-            flow_x0.append(x)
-            flow_traf.append(y_traf)
             old_in = y_in
             old_out = y_out
             old_traf = y_traf
@@ -311,7 +309,7 @@ def main_(yolo):
                 flow_y_in.append(y_in)
                 flow_y_out.append(y_out)
                 # limit = t1 + limit_update
-            if old_traf != flow_traf:
+            if old_traf != y_traf:
                 old_traf = y_traf
                 flow_x0.append(x)
                 flow_traf.append(y_traf)
@@ -344,8 +342,8 @@ def main_(yolo):
         # cv2.putText(frame, "Total Classified: "+str(count),(int(10), int(45)),font, 5e-3 * size, (0,255,0),thick)
         # cv2.putText(frame, "Total Exited: "+str(count-i),(int(10), int(60)),4font, 5e-3 * size, (0,255,0),thick)
         cv2.putText(frame, "Traffic per min: %d"%(flow_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+60)),font, 5e-3 * size, color,thick)
-        cv2.putText(frame, "in per min: "+str(in_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+75)),font, 5e-3 * size, color,thick)
-        cv2.putText(frame, "out per min: "+str(out_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+90)),font, 5e-3 * size, color,thick)
+        cv2.putText(frame, "In per min: "+str(in_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+75)),font, 5e-3 * size, color,thick)
+        cv2.putText(frame, "Out per min: "+str(out_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+90)),font, 5e-3 * size, color,thick)
 
         cv2.imshow('YOLO3_Deep_SORT', frame)
 
