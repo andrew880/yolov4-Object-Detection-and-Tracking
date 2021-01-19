@@ -279,7 +279,7 @@ def main_(yolo):
         #statistics organize
         count = len(set(counter))
         #plot white box
-        x1,x2,y1,y2 = 5,220,5,82 #y2 = last y+5
+        x1,x2,y1,y2 = 5,220,5,97 #y2 = last y+7
         sub_frame = frame[y1:y2, x1:x2]
         white_rect = np.ones(sub_frame.shape, dtype=np.uint8) * 255
         res = cv2.addWeighted(sub_frame, 0.7, white_rect, 0.5, 0.0)
@@ -334,13 +334,15 @@ def main_(yolo):
         #statistics
         yoffset = 2.5
         xoffset = -1
-        cv2.putText(frame, "FPS: %f"%(fps*2),(int(xoffset+10), int(yoffset+15)),font, 5e-3 * size, (0,255,0),thick)
-        cv2.putText(frame, "Current Population: "+str(i),(int(xoffset+10), int(yoffset+30)),font, 5e-3 * size, (0,255,0),thick)
+        color = (0, 0, 0)
+        cv2.putText(frame, "FPS: %f"%(fps*2),(int(xoffset+10), int(yoffset+15)),font, 5e-3 * size, color,thick)
+        cv2.putText(frame, "Time Elapsed: %.4f"%(t1-start),(int(xoffset+10), int(yoffset+30)),font, 5e-3 * size, color,thick)
+        cv2.putText(frame, "Current Population: "+str(i),(int(xoffset+10), int(yoffset+45)),font, 5e-3 * size, color,thick)
         # cv2.putText(frame, "Total Classified: "+str(count),(int(10), int(45)),font, 5e-3 * size, (0,255,0),thick)
         # cv2.putText(frame, "Total Exited: "+str(count-i),(int(10), int(60)),4font, 5e-3 * size, (0,255,0),thick)
-        cv2.putText(frame, "Traffic per min: %d"%(flow_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+45)),font, 5e-3 * size, (0,255,0),thick)
-        cv2.putText(frame, "in per min: "+str(in_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+60)),font, 5e-3 * size, (0,255,0),thick)
-        cv2.putText(frame, "out per min: "+str(out_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+75)),font, 5e-3 * size, (0,255,0),thick)
+        cv2.putText(frame, "Traffic per min: %d"%(flow_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+60)),font, 5e-3 * size, color,thick)
+        cv2.putText(frame, "in per min: "+str(in_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+75)),font, 5e-3 * size, color,thick)
+        cv2.putText(frame, "out per min: "+str(out_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+90)),font, 5e-3 * size, color,thick)
 
         cv2.imshow('YOLO3_Deep_SORT', frame)
 
