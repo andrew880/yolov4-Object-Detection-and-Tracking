@@ -13,6 +13,7 @@ import argparse
 from PIL import Image
 from yolo import YOLO
 import math
+import matplotlib.pyplot as plt
 
 from deep_sort import preprocessing
 from deep_sort import nn_matching
@@ -63,8 +64,23 @@ def init_deep_sort(start):
     pts = [deque(maxlen=50) for _ in range(9999)]
     flow0 = [start for _ in range(9999)]
     flow1 = [start for _ in range(9999)]
-    t_d = 20 #time elapsed in seconds
-    return (encoder, tracker, pts, flow0, flow1, t_d)
+    t_d = 60 #time elapsed in seconds
+    flow_x0 = deque(maxlen=300)#time
+    flow_traf = deque(maxlen=300)
+    flow_x = deque(maxlen=300)#time
+    flow_y_in = deque(maxlen=300)#in
+    flow_y_out = deque(maxlen=300)#out
+    flow_x2 = deque(maxlen=300)#time
+    flow_y_pop = deque(maxlen=300)
+    return (encoder, tracker, pts, flow0, flow1, t_d, flow_x0, flow_traf, flow_x, flow_y_in, flow_y_out, flow_x2, flow_y_pop)
+
+def init_draw():
+    size = 100
+    thick = 1
+    font = 4
+    limit = 0
+    limit_update = 20
+    return  size, thick, font, limit, limit_update
 
 def camera_check(vc):
     return vc.isOpened() & vc.read()[0]
@@ -90,32 +106,70 @@ def flow_count(flow0, flow1, t1,t_d, start):
         #exited person
         elif t1 - flow1[i] < t_d and flow1[i] != t1 and flow1[i] != start:
             count += 1
-    return count
+    # if (t1-start > t_d):
+    #     return count/((t1-start)/60+1)
+    return count/(t_d/60)
 def in_count(flow0, flow1, t1, t_d, start):
     count = 0
     for i in range(len(flow0)):
         #new classified person
         if t1 - flow0[i] < t_d and flow1[i] - flow0[i] > 0:
             count += 1
-    return count
+    return count/(t_d/60)
 def out_count(flow0, flow1, t1,t_d, start):
     count = 0
     for i in range(len(flow0)):
         #exited person
         if t1 - flow1[i] < t_d and flow1[i] != t1 and flow1[i] != start:
             count += 1
-    return count
+    return count/(t_d/60)
+
+def flow_data(flow0, flow1, t1,t_d, start):
+    return (t1, flow_count(flow0, flow1, t1,t_d, start), in_count(flow0, flow1, t1,t_d, start), out_count(flow0, flow1, t1,t_d, start))
+    
+def convert_plot(flow_x0, flow_x, flow_traf, flow_y_in, flow_y_out, flow_x2, flow_y_pop):
+    fig = plt.figure()
+
+    x0 = list(flow_x0)
+    y0 = list(flow_traf)
+    x1 = list(flow_x)
+    y1 = list(flow_y_in)
+    y2 = list(flow_y_out)
+    x2 = list(flow_x2)
+    y3 = list(flow_y_pop)
+    plt.plot(x0, y0, label = "Traffic")
+    plt.plot(x1, y1, label = "Enter")        # so that we can update data later
+    plt.plot(x1, y2, label = "Out") 
+    plt.plot(x2, y3, label = "Current Population")
+    plt.xlabel("Time")
+    plt.ylabel("Population")
+    plt.xlim([max(min(x0), min(x1)), min(max(x0),max(x1))])
+    plt.legend()
+    # redraw the canvas
+    fig.canvas.draw()
+    # convert canvas to image
+    img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8,sep='')
+    img  = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+    # img is rgb, convert to opencv's default bgr
+    img = cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
+
+    cv2.imshow("plot",img)
+    # display image with opencv or any operation you like
+    # cv2.imshow("plot",img)
+    return img, fig.canvas.get_width_height()[::-1]
 
 def main_(yolo):
     #init
     nms_max_overlap, counter, COLORS, fps, start = init_()
     x1,y1,x2,y2 = init_classification_box()
-    encoder, tracker, pts, flow0, flow1, t_d = init_deep_sort(start)
+    encoder, tracker, pts, flow0, flow1, t_d, flow_x0, flow_traf, flow_x, flow_y_in, flow_y_out, flow_x2, flow_y_pop = init_deep_sort(start)
     writeVideo_flag, out, list_file, frame_index, w, h = init_write_video()
-
+    size, thick, font, limit, limit_update = init_draw()
     vc = cv2.VideoCapture(0)
     rval = camera_check(vc)
     t1 = time.time()
+    old_in, old_out, old_traf, old_pop = (0,0,0,0)
     while rval:
         rval, frame = vc.read()
         if rval != True:
@@ -219,22 +273,75 @@ def main_(yolo):
                     continue
                 thickness = int(np.sqrt(64 / float(j + 1)) * 2)
                 cv2.line(frame,(pts[track.track_id][j-1]), (pts[track.track_id][j]),(color),thickness)
-
-        x1,x2,y1,y2 = 8,180,5,110 #y1 = last y+5
+        #init plot
+        cv2.namedWindow("YOLO3_Deep_SORT", 0)
+        cv2.resizeWindow('YOLO3_Deep_SORT', 1280, 720)
+        #statistics organize
+        count = len(set(counter))
+        #plot white box
+        x1,x2,y1,y2 = 5,220,5,82 #y2 = last y+5
         sub_frame = frame[y1:y2, x1:x2]
         white_rect = np.ones(sub_frame.shape, dtype=np.uint8) * 255
         res = cv2.addWeighted(sub_frame, 0.7, white_rect, 0.5, 0.0)
         frame[y1:y2, x1:x2] = res
-        count = len(set(counter))
-        cv2.putText(frame, "FPS: %f"%(fps*2),(int(10), int(15)),4, 5e-3 * 80, (0,255,0),1)
-        cv2.putText(frame, "Current Population: "+str(i),(int(10), int(30)),4, 5e-3 * 80, (0,255,0),1)
-        cv2.putText(frame, "Total Classified: "+str(count),(int(10), int(45)),4, 5e-3 * 80, (0,255,0),1)
-        cv2.putText(frame, "Total Exited: "+str(count-i),(int(10), int(60)),4, 5e-3 * 80, (0,255,0),1)
-        cv2.putText(frame, "Traffic per min: "+str(flow_count(flow0, flow1, t1, t_d, start)),(int(10), int(75)),4, 5e-3 * 80, (0,255,0),1)
-        cv2.putText(frame, "in per min: "+str(in_count(flow0, flow1, t1, t_d, start)),(int(10), int(90)),4, 5e-3 * 80, (0,255,0),1)
-        cv2.putText(frame, "out per min: "+str(out_count(flow0, flow1, t1, t_d, start)),(int(10), int(105)),4, 5e-3 * 80, (0,255,0),1)
-        cv2.namedWindow("YOLO3_Deep_SORT", 0)
-        cv2.resizeWindow('YOLO3_Deep_SORT', 1280, 720)
+        #plot traf_plot
+        x, y_traf, y_in, y_out = flow_data(flow0, flow1, t1, t_d, start)
+        if t1 > limit:
+            flow_x0.append(x)
+            flow_traf.append(y_traf)
+            old_in = y_in
+            old_out = y_out
+            old_traf = y_traf
+            old_pop = i
+            flow_x.append(x)
+            flow_y_in.append(y_in)
+            flow_y_out.append(y_out)
+            flow_x0.append(x)
+            flow_traf.append(y_traf)
+            flow_x2.append(x)
+            flow_y_pop.append(y_in)
+            limit = t1 + limit_update
+        else :
+            if old_in != y_in or old_out > y_out:
+                old_in = y_in
+                old_out = y_out
+                flow_x.append(x)
+                flow_y_in.append(y_in)
+                flow_y_out.append(y_out)
+                limit = t1 + limit_update
+            if old_traf != flow_traf:
+                old_traf = y_traf
+                flow_x0.append(x)
+                flow_traf.append(y_traf)
+                limit = t1 + limit_update
+            if old_pop != i: #current population
+                old_pop = i
+                flow_x2.append(x)
+                flow_y_pop.append(i)
+                limit = t1 + limit_update
+        traf_plot, wh = convert_plot(flow_x0, flow_x, flow_traf, flow_y_in, flow_y_out, flow_x2, flow_y_pop)
+        # print(len(frame[:wh[0], :wh[1]]))
+        # print(len(traf_plot))
+        # sub_frame1 = frame[:wh[0], :wh[1]]                                      #modify for better resolutiion
+        # res = cv2.addWeighted(sub_frame1, 0.7, traf_plot, 0.5, 0.0)
+        # frame[:wh[0], :wh[1]] = res
+        #chart statistics
+        # cv2.putText(frame, "XXXX    |Time    |Current     |Total       |Traffic |Entered |Exited  |",(int(10), int(15)),font, 5e-3 * size, (0,255,100),thick)
+        # cv2.putText(frame, "XXXX    |Elapsed |Population  |Classified  |per min |per min |per min |",(int(10), int(25)),font, 5e-3 * size, (0,255,100),thick)
+        # # cv2.putText(frame, "XXXX    時間    |現場人數     |歷史總人數   |進場/分鐘 |離場/分鍾  |",(int(10), int(35)),4, 5e-3 * 80, (0,255,0),1)
+        # cv2.putText(frame, "live      |%.4f|%d            |%d           |%.4f |%.4f |%.4f |"%(t1-start,i,count,flow_count(flow0, flow1, t1, t_d, start),in_count(flow0, flow1, t1, t_d, start),out_count(flow0, flow1, t1, t_d, start)),\
+        #   (int(10), int(35)),font, 5e-3 * size, (0,255,100),thick)
+        #statistics
+        yoffset = 2.5
+        xoffset = -1
+        cv2.putText(frame, "FPS: %f"%(fps*2),(int(xoffset+10), int(yoffset+15)),font, 5e-3 * size, (0,255,0),thick)
+        cv2.putText(frame, "Current Population: "+str(i),(int(xoffset+10), int(yoffset+30)),font, 5e-3 * size, (0,255,0),thick)
+        # cv2.putText(frame, "Total Classified: "+str(count),(int(10), int(45)),font, 5e-3 * size, (0,255,0),thick)
+        # cv2.putText(frame, "Total Exited: "+str(count-i),(int(10), int(60)),4font, 5e-3 * size, (0,255,0),thick)
+        cv2.putText(frame, "Traffic per min: %d"%(flow_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+45)),font, 5e-3 * size, (0,255,0),thick)
+        cv2.putText(frame, "in per min: "+str(in_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+60)),font, 5e-3 * size, (0,255,0),thick)
+        cv2.putText(frame, "out per min: "+str(out_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+75)),font, 5e-3 * size, (0,255,0),thick)
+
         cv2.imshow('YOLO3_Deep_SORT', frame)
 
 
@@ -257,3 +364,50 @@ def main_(yolo):
     
 if __name__ == '__main__':
     main_(YOLO())
+
+def draw():
+    fig = plt.figure()
+    cap = cv2.VideoCapture(0)
+
+    x1 = np.linspace(0.0, 5.0)
+    x2 = np.linspace(0.0, 2.0)
+
+    y1 = np.cos(2 * np.pi * x1) * np.exp(-x1)
+    y2 = np.cos(2 * np.pi * x2)
+
+
+    line1, = plt.plot(x1, y1, 'ko-')        # so that we can update data later
+
+    for i in range(1000):
+        # update data
+        line1.set_ydata(np.cos(2 * np.pi * (x1+i*3.14/2) ) * np.exp(-x1) )
+
+        # redraw the canvas
+        fig.canvas.draw()
+        shape = (480,640)
+        # convert canvas to image
+        img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+        img  = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        # img  = img.reshape(shape + (3,))
+        # print(type(fig.canvas.get_width_height()[::-1]))
+        # print(shape)
+        # print(fig.canvas.get_width_height()[::-1])
+        # print(fig.canvas.get_width_height()[::-1] + (3,))
+        # print(fig.canvas.get_width_height())
+        # print("---")
+
+        # img is rgb, convert to opencv's default bgr
+        img = cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
+
+
+        # display image with opencv or any operation you like
+        cv2.imshow("plot",img)
+
+        # display camera feed
+        ret,frame = cap.read()
+        cv2.imshow("cam",frame)
+
+        k = cv2.waitKey(33) & 0xFF
+        if k == 27:
+            break
+# draw()

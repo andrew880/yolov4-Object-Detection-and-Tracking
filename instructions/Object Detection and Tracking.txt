@@ -11,3 +11,6 @@ python camera.py
 
 Step 3:
 paste the text in commend prompt and press enter
+
+Step 4:
+press q on the camera window to quit
