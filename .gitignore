@@ -3,6 +3,8 @@ model_data/*.weights
 .vscode/*
 yolo4/*
 __pycache__/*
-.vscode/*
+output/*
 output/output.avi
 detection_rslt.txt
+__pycache__/yolo.cpython-36.pyc
+yolo4/__pycache__/model.cpython-36.pyc
