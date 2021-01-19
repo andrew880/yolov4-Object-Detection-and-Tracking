@@ -64,14 +64,14 @@ def init_deep_sort(start):
     pts = [deque(maxlen=50) for _ in range(9999)]
     flow0 = [start for _ in range(9999)]
     flow1 = [start for _ in range(9999)]
-    t_d = 60 #time elapsed in seconds
-    flow_x0 = deque(maxlen=300)#time
-    flow_traf = deque(maxlen=300)
-    flow_x = deque(maxlen=300)#time
-    flow_y_in = deque(maxlen=300)#in
-    flow_y_out = deque(maxlen=300)#out
-    flow_x2 = deque(maxlen=300)#time
-    flow_y_pop = deque(maxlen=300)
+    t_d = 30 #time elapsed in seconds
+    flow_x0 = deque(maxlen=500)#time
+    flow_traf = deque(maxlen=500)
+    flow_x = deque(maxlen=500)#time
+    flow_y_in = deque(maxlen=500)#in
+    flow_y_out = deque(maxlen=500)#out
+    flow_x2 = deque(maxlen=500)#time
+    flow_y_pop = deque(maxlen=500)
     return (encoder, tracker, pts, flow0, flow1, t_d, flow_x0, flow_traf, flow_x, flow_y_in, flow_y_out, flow_x2, flow_y_pop)
 
 def init_draw():
@@ -108,21 +108,21 @@ def flow_count(flow0, flow1, t1,t_d, start):
             count += 1
     # if (t1-start > t_d):
     #     return count/((t1-start)/60+1)
-    return count/(t_d/60)
+    return count#/(t_d/60)
 def in_count(flow0, flow1, t1, t_d, start):
     count = 0
     for i in range(len(flow0)):
         #new classified person
         if t1 - flow0[i] < t_d and flow1[i] - flow0[i] > 0:
             count += 1
-    return count/(t_d/60)
+    return count#/(t_d/60)
 def out_count(flow0, flow1, t1,t_d, start):
     count = 0
     for i in range(len(flow0)):
         #exited person
         if t1 - flow1[i] < t_d and flow1[i] != t1 and flow1[i] != start:
             count += 1
-    return count/(t_d/60)
+    return count#/(t_d/60)
 
 def flow_data(flow0, flow1, t1,t_d, start):
     return (t1, flow_count(flow0, flow1, t1,t_d, start), in_count(flow0, flow1, t1,t_d, start), out_count(flow0, flow1, t1,t_d, start))
@@ -143,7 +143,7 @@ def convert_plot(flow_x0, flow_x, flow_traf, flow_y_in, flow_y_out, flow_x2, flo
     plt.plot(x2, y3, label = "Current Population")
     plt.xlabel("Time")
     plt.ylabel("Population")
-    plt.xlim([max(min(x0), min(x1), min(max(x0),max(x1))-120), min(max(x0),max(x1))])
+    plt.xlim([max(min(x0), min(x1), min(max(x0),max(x1))-120,0), min(max(x0),max(x1))])
     plt.legend()
     # redraw the canvas
     fig.canvas.draw()
@@ -168,13 +168,12 @@ def main_(yolo):
     size, thick, font, limit, limit_update = init_draw()
     vc = cv2.VideoCapture(0)
     rval = camera_check(vc)
-    t1 = time.time()
     old_in, old_out, old_traf, old_pop = (0,0,0,0)
     while rval:
         rval, frame = vc.read()
         if rval != True:
             break
-        t1 = time.time()
+        t1 = time.time()-start
         class_names = ["person"]
         image = Image.fromarray(frame[...,::-1]) #bgr to rgb
         boxs, confidence, class_names = yolo.detect_image(image) # pylint: disable=unused-variable
@@ -301,6 +300,9 @@ def main_(yolo):
             flow_x2.append(x)
             flow_y_pop.append(i)
             limit = t1 + limit_update
+            # print(limit)
+            # print(t1)
+            # print("__")
         else :
             if old_in != y_in or old_out > y_out:
                 old_in = y_in
@@ -308,17 +310,18 @@ def main_(yolo):
                 flow_x.append(x)
                 flow_y_in.append(y_in)
                 flow_y_out.append(y_out)
-                limit = t1 + limit_update
+                # limit = t1 + limit_update
             if old_traf != flow_traf:
                 old_traf = y_traf
                 flow_x0.append(x)
                 flow_traf.append(y_traf)
-                limit = t1 + limit_update
+                # limit = t1 + limit_update
             if old_pop != i: #current population
                 old_pop = i
                 flow_x2.append(x)
                 flow_y_pop.append(i)
-                limit = t1 + limit_update
+                # limit = t1 + limit_update
+
         traf_plot, wh = convert_plot(flow_x0, flow_x, flow_traf, flow_y_in, flow_y_out, flow_x2, flow_y_pop)
         # print(len(frame[:wh[0], :wh[1]]))
         # print(len(traf_plot))
@@ -336,7 +339,7 @@ def main_(yolo):
         xoffset = -1
         color = (0, 0, 0)
         cv2.putText(frame, "FPS: %f"%(fps*2),(int(xoffset+10), int(yoffset+15)),font, 5e-3 * size, color,thick)
-        cv2.putText(frame, "Time Elapsed: %.4f"%(t1-start),(int(xoffset+10), int(yoffset+30)),font, 5e-3 * size, color,thick)
+        cv2.putText(frame, "Time Elapsed: %.4f"%(t1),(int(xoffset+10), int(yoffset+30)),font, 5e-3 * size, color,thick)
         cv2.putText(frame, "Current Population: "+str(i),(int(xoffset+10), int(yoffset+45)),font, 5e-3 * size, color,thick)
         # cv2.putText(frame, "Total Classified: "+str(count),(int(10), int(45)),font, 5e-3 * size, (0,255,0),thick)
         # cv2.putText(frame, "Total Exited: "+str(count-i),(int(10), int(60)),4font, 5e-3 * size, (0,255,0),thick)
@@ -353,7 +356,7 @@ def main_(yolo):
             frame_index = frame_index + 1
 
 
-        fps  = ( fps + (1./(time.time()-t1)) ) / 2
+        fps  = ( fps + (1./(time.time()-t1-start)) ) / 2
         out.write(frame)
         frame_index = frame_index + 1        
 
