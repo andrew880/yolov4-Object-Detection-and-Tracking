@@ -80,7 +80,8 @@ def init_draw():
     font = 4
     limit = 0
     limit_update = 10
-    return  size, thick, font, limit, limit_update
+    logo = cv2.imread('model_data\LOGO40.jpg',1)
+    return  size, thick, font, limit, limit_update, logo
 
 def camera_check(vc):
     return vc.isOpened() & vc.read()[0]
@@ -137,12 +138,18 @@ def convert_plot(flow_x0, flow_x, flow_traf, flow_y_in, flow_y_out, flow_x2, flo
     y2 = list(flow_y_out)
     x2 = list(flow_x2)
     y3 = list(flow_y_pop)
-    plt.plot(x0, y0, label = "Traffic")
+    plt.plot(x0, y0, label = "Traffic",linewidth=3)
     # plt.plot(x1, y1, label = "Enter")
     # plt.plot(x1, y2, label = "Out") 
+<<<<<<< Updated upstream
     plt.plot(x2, y3, label = "Current Population")
     plt.xlabel("Time (Second)")
     plt.ylabel("Population (Person)")
+=======
+    plt.plot(x2, y3, label = "Current Population",linewidth=2)
+    plt.xlabel("Time")
+    plt.ylabel("Population")
+>>>>>>> Stashed changes
     plt.xlim([max(min(x0), min(x1), min(max(x0),max(x1))-120,0), min(max(x0),max(x1))])
     plt.legend()
     # redraw the canvas
@@ -165,7 +172,7 @@ def main_(yolo):
     x1,y1,x2,y2 = init_classification_box()
     encoder, tracker, pts, flow0, flow1, t_d, flow_x0, flow_traf, flow_x, flow_y_in, flow_y_out, flow_x2, flow_y_pop = init_deep_sort(start)
     writeVideo_flag, out, list_file, frame_index, w, h = init_write_video()
-    size, thick, font, limit, limit_update = init_draw()
+    size, thick, font, limit, limit_update,logo = init_draw()
     vc = cv2.VideoCapture(0)
     rval = camera_check(vc)
     old_in, old_out, old_traf, old_pop = (0,0,0,0)
@@ -281,7 +288,7 @@ def main_(yolo):
         x1,x2,y1,y2 = 5,220,5,97 #y2 = last y+7
         sub_frame = frame[y1:y2, x1:x2]
         white_rect = np.ones(sub_frame.shape, dtype=np.uint8) * 255
-        res = cv2.addWeighted(sub_frame, 0.7, white_rect, 0.5, 0.0)
+        res = cv2.addWeighted(sub_frame, 0.7, white_rect, 0.7, 0.0)
         frame[y1:y2, x1:x2] = res
         #plot traf_plot
         x, y_traf, y_in, y_out = flow_data(flow0, flow1, t1, t_d, start)
@@ -345,6 +352,11 @@ def main_(yolo):
         cv2.putText(frame, "In per min: "+str(in_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+75)),font, 5e-3 * size, color,thick)
         cv2.putText(frame, "Out per min: "+str(out_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+90)),font, 5e-3 * size, color,thick)
 
+        #plot logo
+        x1,x2,y1,y2 = 180,220,53,94 #y2 = last y+7
+        sub_frame = frame[y1:y2, x1:x2]
+        res = cv2.addWeighted(sub_frame, 0.5, logo, .5, 0.0)
+        frame[y1:y2, x1:x2] = res
         cv2.imshow('YOLO3_Deep_SORT', frame)
 
 
@@ -368,10 +380,10 @@ def main_(yolo):
 if __name__ == '__main__':
     main_(YOLO())
 
-def draw():
+# def draw():
     fig = plt.figure()
     cap = cv2.VideoCapture(0)
-
+    logo = cv2.imread('model_data\LOGO40.jpg',1)
     x1 = np.linspace(0.0, 5.0)
     x2 = np.linspace(0.0, 2.0)
 
@@ -398,10 +410,14 @@ def draw():
         # print(fig.canvas.get_width_height()[::-1] + (3,))
         # print(fig.canvas.get_width_height())
         # print("---")
+                #plot logo
 
         # img is rgb, convert to opencv's default bgr
         img = cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
-
+        x1,x2,y1,y2 = 180,220,45,86 #y2 = last y+7
+        sub_frame = img[y1:y2, x1:x2]
+        res = cv2.addWeighted(sub_frame, 0.5, logo, .5, 0.0)
+        img[y1:y2, x1:x2] = res
 
         # display image with opencv or any operation you like
         cv2.imshow("plot",img)
@@ -413,4 +429,5 @@ def draw():
         k = cv2.waitKey(33) & 0xFF
         if k == 27:
             break
+
 # draw()
