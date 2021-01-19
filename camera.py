@@ -80,7 +80,7 @@ def init_draw():
     font = 4
     limit = 0
     limit_update = 10
-    logo = cv2.imread('model_data\LOGO40.jpg',1)
+    logo = cv2.imread('model_data\logo30.jpg',1)
     return  size, thick, font, limit, limit_update, logo
 
 def camera_check(vc):
@@ -279,10 +279,15 @@ def main_(yolo):
         #statistics organize
         count = len(set(counter))
         #plot white box
-        x1,x2,y1,y2 = 5,220,5,97 #y2 = last y+7
+        x1,x2,y1,y2 = 5,220,5,102 #y2 = last y+7
         sub_frame = frame[y1:y2, x1:x2]
         white_rect = np.ones(sub_frame.shape, dtype=np.uint8) * 255
-        res = cv2.addWeighted(sub_frame, 0.7, white_rect, 0.7, 0.0)
+        #plot logo in white box
+        x_1,x_2,y_1,y_2 = 185,215,65,95 #y2 = last y+7
+        sub_frame_ = white_rect[y_1:y_2, x_1:x_2]
+        res_ = cv2.addWeighted(sub_frame_, 0, logo, 1, 0.0)
+        white_rect[y_1:y_2, x_1:x_2] = res_
+        res = cv2.addWeighted(sub_frame, 0.4, white_rect, 0.6, 0.0)
         frame[y1:y2, x1:x2] = res
         #plot traf_plot
         x, y_traf, y_in, y_out = flow_data(flow0, flow1, t1, t_d, start)
@@ -337,22 +342,16 @@ def main_(yolo):
         yoffset = 2.5
         xoffset = -1
         color = (0, 0, 0)
-        cv2.putText(frame, "FPS: %f"%(fps*2),(int(xoffset+10), int(yoffset+15)),font, 5e-3 * size, color,thick)
-        cv2.putText(frame, "Time Elapsed: %.4f"%(t1),(int(xoffset+10), int(yoffset+30)),font, 5e-3 * size, color,thick)
-        cv2.putText(frame, "Current Population: "+str(i),(int(xoffset+10), int(yoffset+45)),font, 5e-3 * size, color,thick)
+        cv2.putText(frame, "FPS: %f"%(fps*2),(int(xoffset+10), int(yoffset+15)),font, 4e-3 * size, color,thick)
+        cv2.putText(frame, "Time Elapsed: %.2f"%(t1),(int(xoffset+10), int(yoffset+31)),font, 4e-3 * size, color,thick)
+        cv2.putText(frame, "Current Population: "+str(i),(int(xoffset+10), int(yoffset+47)),font, 4e-3 * size, color,thick)
         # cv2.putText(frame, "Total Classified: "+str(count),(int(10), int(45)),font, 5e-3 * size, (0,255,0),thick)
         # cv2.putText(frame, "Total Exited: "+str(count-i),(int(10), int(60)),4font, 5e-3 * size, (0,255,0),thick)
-        cv2.putText(frame, "Traffic per min: %d"%(flow_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+60)),font, 5e-3 * size, color,thick)
-        cv2.putText(frame, "In per min: "+str(in_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+75)),font, 5e-3 * size, color,thick)
-        cv2.putText(frame, "Out per min: "+str(out_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+90)),font, 5e-3 * size, color,thick)
+        cv2.putText(frame, "Traffic per min: %d"%(flow_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+63)),font, 4e-3 * size, color,thick)
+        cv2.putText(frame, "In per min: "+str(in_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+79)),font, 4e-3 * size, color,thick)
+        cv2.putText(frame, "Out per min: "+str(out_count(flow0, flow1, t1, t_d, start)),(int(xoffset+10), int(yoffset+95)),font, 4e-3 * size, color,thick)
 
-        #plot logo
-        x1,x2,y1,y2 = 180,220,53,94 #y2 = last y+7
-        sub_frame = frame[y1:y2, x1:x2]
-        res = cv2.addWeighted(sub_frame, 0.5, logo, .5, 0.0)
-        frame[y1:y2, x1:x2] = res
         cv2.imshow('YOLO3_Deep_SORT', frame)
-
 
         if writeVideo_flag:
             # save a frame
@@ -375,53 +374,53 @@ if __name__ == '__main__':
     main_(YOLO())
 
 # def draw():
-    fig = plt.figure()
-    cap = cv2.VideoCapture(0)
-    logo = cv2.imread('model_data\LOGO40.jpg',1)
-    x1 = np.linspace(0.0, 5.0)
-    x2 = np.linspace(0.0, 2.0)
+#     fig = plt.figure()
+#     cap = cv2.VideoCapture(0)
+#     logo = cv2.imread('model_data\LOGO40.jpg',1)
+#     x1 = np.linspace(0.0, 5.0)
+#     x2 = np.linspace(0.0, 2.0)
 
-    y1 = np.cos(2 * np.pi * x1) * np.exp(-x1)
-    y2 = np.cos(2 * np.pi * x2)
+#     y1 = np.cos(2 * np.pi * x1) * np.exp(-x1)
+#     y2 = np.cos(2 * np.pi * x2)
 
 
-    line1, = plt.plot(x1, y1, 'ko-')        # so that we can update data later
+#     line1, = plt.plot(x1, y1, 'ko-')        # so that we can update data later
 
-    for i in range(1000):
-        # update data
-        line1.set_ydata(np.cos(2 * np.pi * (x1+i*3.14/2) ) * np.exp(-x1) )
+#     for i in range(1000):
+#         # update data
+#         line1.set_ydata(np.cos(2 * np.pi * (x1+i*3.14/2) ) * np.exp(-x1) )
 
-        # redraw the canvas
-        fig.canvas.draw()
-        shape = (480,640)
-        # convert canvas to image
-        img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
-        img  = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-        # img  = img.reshape(shape + (3,))
-        # print(type(fig.canvas.get_width_height()[::-1]))
-        # print(shape)
-        # print(fig.canvas.get_width_height()[::-1])
-        # print(fig.canvas.get_width_height()[::-1] + (3,))
-        # print(fig.canvas.get_width_height())
-        # print("---")
-                #plot logo
+#         # redraw the canvas
+#         fig.canvas.draw()
+#         shape = (480,640)
+#         # convert canvas to image
+#         img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+#         img  = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+#         # img  = img.reshape(shape + (3,))
+#         # print(type(fig.canvas.get_width_height()[::-1]))
+#         # print(shape)
+#         # print(fig.canvas.get_width_height()[::-1])
+#         # print(fig.canvas.get_width_height()[::-1] + (3,))
+#         # print(fig.canvas.get_width_height())
+#         # print("---")
+#                 #plot logo
 
-        # img is rgb, convert to opencv's default bgr
-        img = cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
-        x1,x2,y1,y2 = 180,220,45,86 #y2 = last y+7
-        sub_frame = img[y1:y2, x1:x2]
-        res = cv2.addWeighted(sub_frame, 0.5, logo, .5, 0.0)
-        img[y1:y2, x1:x2] = res
+#         # img is rgb, convert to opencv's default bgr
+#         img = cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
+#         x1,x2,y1,y2 = 180,220,45,86 #y2 = last y+7
+#         sub_frame = img[y1:y2, x1:x2]
+#         res = cv2.addWeighted(sub_frame, 0.5, logo, .5, 0.0)
+#         img[y1:y2, x1:x2] = res
 
-        # display image with opencv or any operation you like
-        cv2.imshow("plot",img)
+#         # display image with opencv or any operation you like
+#         cv2.imshow("plot",img)
 
-        # display camera feed
-        ret,frame = cap.read()
-        cv2.imshow("cam",frame)
+#         # display camera feed
+#         ret,frame = cap.read()
+#         cv2.imshow("cam",frame)
 
-        k = cv2.waitKey(33) & 0xFF
-        if k == 27:
-            break
+#         k = cv2.waitKey(33) & 0xFF
+#         if k == 27:
+#             break
 
 # draw()
