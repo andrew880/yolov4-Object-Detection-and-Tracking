@@ -141,15 +141,9 @@ def convert_plot(flow_x0, flow_x, flow_traf, flow_y_in, flow_y_out, flow_x2, flo
     plt.plot(x0, y0, label = "Traffic",linewidth=3)
     # plt.plot(x1, y1, label = "Enter")
     # plt.plot(x1, y2, label = "Out") 
-<<<<<<< Updated upstream
     plt.plot(x2, y3, label = "Current Population")
     plt.xlabel("Time (Second)")
     plt.ylabel("Population (Person)")
-=======
-    plt.plot(x2, y3, label = "Current Population",linewidth=2)
-    plt.xlabel("Time")
-    plt.ylabel("Population")
->>>>>>> Stashed changes
     plt.xlim([max(min(x0), min(x1), min(max(x0),max(x1))-120,0), min(max(x0),max(x1))])
     plt.legend()
     # redraw the canvas
