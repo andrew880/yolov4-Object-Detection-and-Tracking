@@ -141,8 +141,8 @@ def convert_plot(flow_x0, flow_x, flow_traf, flow_y_in, flow_y_out, flow_x2, flo
     # plt.plot(x1, y1, label = "Enter")
     # plt.plot(x1, y2, label = "Out") 
     plt.plot(x2, y3, label = "Current Population")
-    plt.xlabel("Time")
-    plt.ylabel("Population")
+    plt.xlabel("Time (Second)")
+    plt.ylabel("Population (Person)")
     plt.xlim([max(min(x0), min(x1), min(max(x0),max(x1))-120,0), min(max(x0),max(x1))])
     plt.legend()
     # redraw the canvas
@@ -243,38 +243,38 @@ def main_(yolo):
             #print(center2)
             
             #calculateDistance
-            if len(center2) > 2:
-                for i in range(len(center2)):
-                    for j in range(len(center2)):
-                        #g = isclose(co_info[i],co_info[j])
-                        #D = dist.euclidean((center2[i]), (center2[j]))
-                        x1 = center2[i][0]
-                        y1 = center2[i][1]
-                        x2 = center2[j][0]
-                        y2 = center2[j][1]
-                        dis = calculateDistance(x1,y1,x2,y2)
+            # if len(center2) > 2:
+            #     for i in range(len(center2)):
+            #         for j in range(len(center2)):
+            #             #g = isclose(co_info[i],co_info[j])
+            #             #D = dist.euclidean((center2[i]), (center2[j]))
+            #             x1 = center2[i][0]
+            #             y1 = center2[i][1]
+            #             x2 = center2[j][0]
+            #             y2 = center2[j][1]
+            #             dis = calculateDistance(x1,y1,x2,y2)
                         
-                        if dis < 200:
-                            #print(dis)
-                            cv2.line(frame,(center2[i]),(center2[j]),(0,128,255),2)
+            #             if dis < 200:
+            #                 #print(dis)
+            #                 cv2.line(frame,(center2[i]),(center2[j]),(0,128,255),2)
                         
-                        if dis < 100:
-                            #x_l.append(center2[i])
-                            cv2.line(frame,(center2[i]),(center2[j]),(0,0,255),5)
-                            #cv2.putText(frame, "KEEP DISTANCE",(int(960), int(1060)),0, 5e-3 * 200, (0,0,255),2)
+            #             if dis < 100:
+            #                 #x_l.append(center2[i])
+            #                 cv2.line(frame,(center2[i]),(center2[j]),(0,0,255),5)
+            #                 #cv2.putText(frame, "KEEP DISTANCE",(int(960), int(1060)),0, 5e-3 * 200, (0,0,255),2)
             
             #center point
-            cv2.circle(frame,  (center), 1, color, thickness)
+            # cv2.circle(frame,  (center), 1, color, thickness)
 
             # draw motion path
-            for j in range(1, len(pts[track.track_id])):
-                if pts[track.track_id][j - 1] is None or pts[track.track_id][j] is None:
-                    continue
-                thickness = int(np.sqrt(64 / float(j + 1)) * 2)
-                cv2.line(frame,(pts[track.track_id][j-1]), (pts[track.track_id][j]),(color),thickness)
+            # for j in range(1, len(pts[track.track_id])):
+            #     if pts[track.track_id][j - 1] is None or pts[track.track_id][j] is None:
+            #         continue
+            #     thickness = int(np.sqrt(64 / float(j + 1)) * 2)
+            #     cv2.line(frame,(pts[track.track_id][j-1]), (pts[track.track_id][j]),(color),thickness)
         #init plot
         cv2.namedWindow("YOLO3_Deep_SORT", 0)
-        cv2.resizeWindow('YOLO3_Deep_SORT', 1280, 720)
+        cv2.resizeWindow('YOLO3_Deep_SORT', 1920, 1080)
         #statistics organize
         count = len(set(counter))
         #plot white box
