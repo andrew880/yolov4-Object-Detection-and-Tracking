@@ -1,6 +1,6 @@
 model_data/*.h5
 model_data/*.weights
-*.vscode
+.vscode/*
 yolo4/*
 __pycache__/*
 .vscode/*
