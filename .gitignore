@@ -1,4 +1,7 @@
-model_data\yolo4_weight.h5
-model_data\yolov4.weights
-.vscode
-__pycache__
+model_data/*.h5
+model_data/*.weights
+*.vscode
+yolo4/*
+__pycache__/*
+.vscode/*
+output/output.avi

@@ -79,7 +79,7 @@ def init_draw():
     thick = 1
     font = 4
     limit = 0
-    limit_update = 20
+    limit_update = 10
     return  size, thick, font, limit, limit_update
 
 def camera_check(vc):
@@ -138,12 +138,12 @@ def convert_plot(flow_x0, flow_x, flow_traf, flow_y_in, flow_y_out, flow_x2, flo
     x2 = list(flow_x2)
     y3 = list(flow_y_pop)
     plt.plot(x0, y0, label = "Traffic")
-    plt.plot(x1, y1, label = "Enter")        # so that we can update data later
-    plt.plot(x1, y2, label = "Out") 
+    # plt.plot(x1, y1, label = "Enter")
+    # plt.plot(x1, y2, label = "Out") 
     plt.plot(x2, y3, label = "Current Population")
     plt.xlabel("Time")
     plt.ylabel("Population")
-    plt.xlim([max(min(x0), min(x1)), min(max(x0),max(x1))])
+    plt.xlim([max(min(x0), min(x1), min(max(x0),max(x1))-120), min(max(x0),max(x1))])
     plt.legend()
     # redraw the canvas
     fig.canvas.draw()
@@ -299,7 +299,7 @@ def main_(yolo):
             flow_x0.append(x)
             flow_traf.append(y_traf)
             flow_x2.append(x)
-            flow_y_pop.append(y_in)
+            flow_y_pop.append(i)
             limit = t1 + limit_update
         else :
             if old_in != y_in or old_out > y_out:
