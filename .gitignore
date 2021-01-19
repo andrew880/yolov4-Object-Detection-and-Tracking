@@ -5,3 +5,4 @@ yolo4/*
 __pycache__/*
 .vscode/*
 output/output.avi
+detection_rslt.txt
